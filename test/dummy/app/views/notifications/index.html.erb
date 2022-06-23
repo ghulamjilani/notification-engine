@@ -1,0 +1,112 @@
+<div class="table-wrapper pt-5">
+  <% if notice.present? %>
+    <p class="alert alert-success"><%= notice %></p>
+  <% end %>
+  <%= form_tag destroy_all_notifications_path, method: :delete, remote: true do %>
+    <div class="table-title">
+        <div class="row">
+            <div class="col-sm-10 pt-3 mb-3"><h2>Notifications</b></h2></div>
+            <div class="col-sm-2 pt-3 mb-3">
+              <%= submit_tag "Delete selected", hidden: true, class: 'deleteAll btn btn-danger' , data: { confirm: 'Are tou sure?' } %>
+            </div>
+        </div>
+    </div>
+    <table class="table table-striped table-hover table-bordered" style="border-collapse:collapse;">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">
+            <input type="checkbox" id="multiSelect"></input>
+          </th>
+          <th scope="col">Title</th>
+          <th scope="col">Importance</th>
+          <th scope="col">Date/Time</th>
+          <% if current_user.admin? %>
+            <th scope="col">Actions</th>
+          <% end %>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if @notifications.present? %>
+          <% @notifications.each_with_index do |notification, index| %>
+
+            <tr colspan="6" data-toggle="collapse" data-target="#demo-<%= index %>" class="accordion-toggle">
+              <th scope="row">
+                <%= check_box_tag "id[]", notification.id, false, class: 'notifi-id' %>
+              </th>
+              <td><%= notification.title %></td>
+              <td><%= notification.importance %></td>
+              <td><%= notification.day %></td>
+              <% if current_user.admin? %>
+                <td>
+                  <%= link_to 'Edit', edit_notification_path(notification), class: 'mr-2 text-info' %>
+                </td>
+              <% end %>
+            </tr>
+            <tr class="p">
+              <td colspan="6" class="hiddenRow p-0">
+                <div class="accordian-body collapse p-3" id="demo-<%= index %>">
+                  <p>Title : <span><%= notification.title %></span> </p>
+                  <p>Content : <span><%= notification.content %></span> </p>
+                  <p>Importance : <span><%= notification.importance %></span></p>
+                  <p>Date/Time : <span><%= notification.day %></span></p>
+                  <p>Tag : <span><%= notification.tag %></span></p>
+                  <p>Created At : <span><%= notification.created_at %></span></p>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr class="text-center">
+            <td>No Notifications found</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
+
+<br>
+<% if current_user.admin? %>
+  <%= link_to "New notification", new_notification_path, class: 'btn btn-primary mb-4' %>
+<% end %>
+
+
+<%= button_to "logout", destroy_user_session_path, method: :delete , class: "btn btn-info text-white"%>
+
+<script>
+
+  $(document).ready(function (){
+
+    $('.accordion-toggle').click(function(){
+      $('.hiddenRow').hide();
+      $(this).next('tr').find('.hiddenRow').show();
+    });
+
+    $('#multiSelect').on("change", function(){
+      var allCheckBoxes = $('.notifi-id:checkbox').length
+      if(this.checked){
+        $('.notifi-id').prop("checked", "checked");
+        if (allCheckBoxes !== 0)
+          toggleDeleteButton(true);
+      } else {  
+        $('.notifi-id').prop("checked", false);
+        toggleDeleteButton(false)
+      }
+    });
+
+    $('.notifi-id').on("change", function(){
+      var allCheckBoxes = $('.notifi-id:checkbox').length
+      var allCheckedCheckBoxes = $('.notifi-id:checkbox:checked').length
+      if(allCheckBoxes === allCheckedCheckBoxes){
+        $('#multiSelect').prop("checked", "checked");
+      } else{
+        $('#multiSelect').prop("checked", false);
+      }
+      allCheckedCheckBoxes > 0 ? toggleDeleteButton(true) : toggleDeleteButton(false)
+    });
+  })
+  function toggleDeleteButton(checked) {
+    checked ? $('.deleteAll').removeAttr('hidden') : $('.deleteAll').attr('hidden', 'hidden')
+  }
+</script>
